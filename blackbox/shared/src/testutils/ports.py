@@ -29,7 +29,7 @@ class PortPool(object):
         self.lock = Lock()
 
     def bind_port(self, addr, port):
-        sock = socket.socket()
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.bind((addr, port))
         port = sock.getsockname()[1]
         try:
