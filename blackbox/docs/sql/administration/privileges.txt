@@ -1,0 +1,173 @@
+.. _administration_privileges:
+
+Privileges
+==========
+
+.. note::
+
+    Privileges are only part of the CrateDB `Enterprise Edition`_.
+
+When a user is created, he doesn't have any privileges. The superuser can then
+grant ``READ`` and ``WRITE`` privileges to this user.
+
+Please note that only the superuser can ``GRANT`` and ``REVOKE`` privileges.
+The superuser bypasses all privileges and can access all tables in the cluster.
+
+
+``GRANT``
+---------
+
+.. hide:
+
+    cr> CREATE table books;
+    CREATE OK, 1 row affected (... sec)
+
+    cr> CREATE table school.courses;
+    CREATE OK, 1 row affected (... sec)
+
+    cr> CREATE table school.teachers;
+    CREATE OK, 1 row affected (... sec)
+
+    cr> CREATE table school.students;
+    CREATE OK, 1 row affected (... sec)
+
+    cr> CREATE user wolfgang;
+    CREATE OK, 1 row affected (... sec)
+
+    cr> CREATE user riley;
+    CREATE OK, 1 row affected (... sec)
+
+    cr> CREATE user kala;
+    CREATE OK, 1 row affected (... sec)
+
+    cr> CREATE user will;
+    CREATE OK, 1 row affected (... sec)
+
+To grant a privilege to an existing user we use the :doc:`/sql/reference/grant` SQL statement,
+for example::
+
+    cr> GRANT READ ON TABLE books TO wolfgang;
+    GRANT OK, 1 row affected (... sec)
+
+Granting ``READ`` privilege on a table to a user, indicates that this user is allowed to run
+``SELECT`` statements on this table. Since privileges are only defined on a table level, this
+user will also be able to run other statements such as ``CREATE TABLE``,  ``CREATE FUNCTION``,
+``SHOW TABLES``, ``EXPLAIN`` etc.
+
+When a user creates a new table, he will have ``READ`` and ``WRITE`` privilege
+on that table.
+
+If a user with the username specified in the SQL statement does not exist the
+statement returns an error::
+
+    cr> GRANT WRITE ON TABLE books TO layla;
+    UserDoesNotExistException ...
+
+It is not possible to ``GRANT`` privileges to the built-in superuser ``crate``.
+
+If a table belongs to a specific schema, the ``READ`` privilege can be granted like this::
+
+    cr> GRANT READ ON TABLE school.courses TO wolfgang;
+    GRANT OK, 1 row affected (... sec)
+
+To grant ``WRITE`` privilege to user riley on the tables books, and school.courses we can
+use the following syntax::
+
+    cr> GRANT WRITE ON TABLE books, school.courses TO riley;
+    GRANT OK, 1 row affected (... sec)
+
+Granting ``WRITE`` privilege on a table to a user, indicates that this user is allowed to run
+``INSERT``, ``ALTER TABLE`` ``DELETE`` and ``DROP TABLE`` statements on this table.
+
+Users having ``WRITE`` privilege on a table, will still need ``READ`` privilege to be able to run
+``SELECT`` statements on that table.
+
+To grant ``ALL`` privileges to user riley on table books, we can use the following syntax::
+
+    cr> GRANT ALL ON TABLE books TO riley;
+    GRANT OK, 2 rows affected (... sec)
+
+``ALL`` implies all the currently available privileges, namely ``READ`` and ``WRITE``.
+
+The superuser can also grant privileges on all tables in a schema, like this::
+
+    cr> GRANT READ ON ALL TABLES IN SCHEMA school TO riley;
+    GRANT OK, 2 row affected (... sec)
+
+Privileges can be granted to multiple users in the same statement, like so::
+
+    cr> GRANT READ ON ALL TABLES IN SCHEMA school TO kala, will;
+    GRANT OK, 6 row affected (... sec)
+
+
+``ALL TABLES IN SCHEMA`` implies only the tables that currently exist in a schema.
+
+Currently, there is no option to grant privileges on all tables of the cluster.
+
+.. warning:
+
+    It is not possible to ``GRANT`` or ``REVOKE`` privileges on ``information_schema``
+    tables.
+
+``REVOKE``
+----------
+
+To revoke a privilege that was previously granted to a user use the
+:doc:`/sql/reference/revoke` SQL statement, for example::
+
+    cr> REVOKE WRITE ON TABLE books FROM riley;
+    REVOKE OK, 1 row affected (... sec)
+
+If a user with the username specified in the SQL statement does not exist the
+statement returns an error::
+
+    cr> REVOKE WRITE ON TABLE books FROM layla;
+    UserDoesNotExistException ...
+
+It is not possible to ``REVOKE`` privileges from the built-in superuser ``crate``.
+
+The `READ`` privileges that were previously granted to the user riley on all
+tables of the school schema, can be revoked like this::
+
+    cr> REVOKE READ ON ALL TABLES IN SCHEMA school FROM riley;
+    REVOKE OK, 3 row affected (... sec)
+
+``REVOKE ALL`` or ``REVOKE ALL PRIVILEGES`` will revoke all privileges on a table
+that were previously granted to a user, it can be used like this::
+
+    cr> REVOKE ALL ON ALL TABLES IN SCHEMA school FROM kala;
+    REVOKE OK, 3 row affected (... sec)
+
+    cr> REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA school FROM will;
+    REVOKE OK, 3 row affected (... sec)
+
+
+List Privileges
+---------------
+
+CrateDB exposes table privileges via the read-only
+``information_schema.table_privileges`` system table.
+
+To list all existing privileges query that table::
+
+    cr> SELECT * FROM information_schema.table_privileges;
+    +-------------+-----------+--------------+------------+----------------+
+    | grantor     | grantee   | table_schema | table_name | privilege_type |
+    +-------------+-----------+--------------+------------+----------------+
+    | crate       | wolfgang  | doc          | books      | READ           |
+    | crate       | wolfgang  | doc          | books      | WRITE          |
+    | crate       | riley     | doc          | books      | READ           |
+    +-------------+-----------+--------------+------------+----------------+
+    SELECT 3 rows in set (... sec)
+
+The column ``grantor`` shows the user who granted the privilege, the column ``grantee``
+shows the user for whom the privilege was granted. The column ``table_schema`` reflects
+the schema to which the table belongs and the column ``table_name`` stands for the table
+on which the privilege was granted, and finally ``privilege_type`` reflects the privilege
+that was granted.
+
+.. note::
+
+   GRANT/REVOKE privileges on a single partition is not possible.
+
+.. _Enterprise Edition: https://crate.io/enterprise/

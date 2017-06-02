@@ -24,7 +24,7 @@ on one or many tables, or all tables in a schema from one or many existing exist
 users.
 
 For usage of the ``GRANT`` statement see
-:doc:`/sql/administration/user_privileges`.
+:doc:`/sql/administration/privileges`.
 
 Parameters
 ==========
