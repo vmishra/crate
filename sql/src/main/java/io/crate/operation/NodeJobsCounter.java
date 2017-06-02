@@ -42,6 +42,7 @@ public class NodeJobsCounter {
     public static final long MAX_NODE_CONCURRENT_OPERATIONS = 5;
 
     private long unknownNodeCount = 0L;
+    // Using single element long[] to avoid autoboxing
     private final Map<String, long[]> operationsCountPerNode = new ConcurrentHashMap<>();
 
     public void increment(@Nullable String nodeId) {
