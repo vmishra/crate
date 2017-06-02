@@ -352,8 +352,8 @@ public class ShardingUpsertExecutor<TReq extends ShardRequest<TReq, TItem>, TIte
             for (int i = 0; i < pendingRequests.size(); i++) {
                 PendingRequest<TItem> pendingRequest = pendingRequests.get(i);
                 ShardLocation shardLocation = getShardLocation(index, pendingRequest.item.id(), pendingRequest.routing);
-                assert shardLocation != null : "TODO";
-
+                assert shardLocation != null : "Unable to get location of shard " + pendingRequest.item.id() +
+                                               " for index " + index;
                 addToRequest(pendingRequest.item, shardLocation, requests);
             }
         }
