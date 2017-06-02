@@ -64,7 +64,6 @@ public class ShardDMLExecutor<TReq extends ShardRequest<TReq, TItem>, TItem exte
     private final int bulkSize;
     private final ScheduledExecutorService scheduler;
     private final BitSet responses;
-    private final ClusterService clusterService;
     private final NodeJobsCounter nodeJobsCounter;
     private final AtomicInteger pendingItemsCount = new AtomicInteger(0);
     private final Consumer<Row> rowConsumer;
@@ -86,7 +85,6 @@ public class ShardDMLExecutor<TReq extends ShardRequest<TReq, TItem>, TItem exte
                             BiConsumer<TReq, ActionListener<ShardResponse>> transportAction) {
         this.bulkSize = bulkSize;
         this.scheduler = scheduler;
-        this.clusterService = clusterService;
         this.nodeJobsCounter = nodeJobsCounter;
         this.responses = new BitSet();
         this.currentRequest = requestFactory.get();
