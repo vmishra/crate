@@ -123,12 +123,24 @@ public class ShardDMLExecutor<TReq extends ShardRequest<TReq, TItem>, TItem exte
         return (isLastBatch) -> {
             nodeJobsCounter.increment(localNodeId);
 
-            FutureActionListener<ShardResponse, BitSet> listener = new FutureActionListener<>(response -> {
+            Function<ShardResponse, BitSet> transformResponseFunction = response -> {
                 currentRequest = requestFactory.get();
                 nodeJobsCounter.decrement(localNodeId);
                 processShardResponse(response);
                 return responses;
-            });
+            };
+
+            FutureActionListener<ShardResponse, BitSet> listener =
+                new FutureActionListener<ShardResponse, BitSet>(transformResponseFunction) {
+
+                    // Some operations fail instantly (eg writing on a table/partition that has `blocks.write=true`)
+                    @Override
+                    public void onFailure(Exception e) {
+                        super.onFailure(e);
+                        nodeJobsCounter.decrement(localNodeId);
+                        executionFuture.completeExceptionally(e);
+                    }
+                };
 
             transportAction.accept(
                 currentRequest,
