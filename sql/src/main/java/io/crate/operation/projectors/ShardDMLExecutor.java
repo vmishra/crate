@@ -134,16 +134,7 @@ public class ShardDMLExecutor<TReq extends ShardRequest<TReq, TItem>, TItem exte
                 return responses;
             };
 
-            FutureActionListener<ShardResponse, BitSet> listener = new FutureActionListener(processResponseFunction) {
-                @Override
-                public void onFailure(Exception e) {
-                    super.onFailure(e);
-                    pendingItemsCount.decrementAndGet();
-                    nodeJobsCounter.decrement(nodeId);
-                    executionFuture.completeExceptionally(e);
-                }
-            };
-
+            FutureActionListener<ShardResponse, BitSet> listener = new FutureActionListener(processResponseFunction);
             transportAction.accept(
                 currentRequest,
                 new RetryListener<>(scheduler,
