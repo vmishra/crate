@@ -151,7 +151,7 @@ public class BatchIteratorBackpressureExecutor<R> {
         try {
             while (true) {
                 if (indexInBulk == bulkSize) {
-                    if (tryExecuteBulk(false) == false) {
+                    if (tryExecuteBulk() == false) {
                         collectingEnabled.set(false);
                         if (isScheduledCollectionRunning.compareAndSet(false, true)) {
                             scheduleConsumeIterator();
@@ -186,10 +186,10 @@ public class BatchIteratorBackpressureExecutor<R> {
             consumeIteratorDelays.next().getMillis(), TimeUnit.MILLISECONDS);
     }
 
-    private boolean tryExecuteBulk(boolean isLastBatch) {
+    private boolean tryExecuteBulk() {
         if (backPressureTrigger.getAsBoolean() == false) {
             indexInBulk = 0;
-            CompletableFuture<R> bulkExecutionFuture = executeFunction.apply(isLastBatch);
+            CompletableFuture<R> bulkExecutionFuture = executeFunction.apply(false);
             bulkExecutionFuture.whenComplete(bulkExecutionCompleteListener);
             return true;
         }
