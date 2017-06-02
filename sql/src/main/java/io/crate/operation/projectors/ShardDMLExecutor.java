@@ -108,10 +108,7 @@ public class ShardDMLExecutor<TReq extends ShardRequest<TReq, TItem>, TItem exte
     private BooleanSupplier createBackpressureTrigger() {
         return () -> {
             final String nodeId = getLocalNodeId();
-            if (isExecutionPossible(nodeId)) {
-                return false;
-            }
-            return true;
+            return !isExecutionPossible(nodeId);
         };
     }
 
