@@ -71,6 +71,7 @@ public class ShardDMLExecutor<TReq extends ShardRequest<TReq, TItem>, TItem exte
     private final Consumer<Row> rowConsumer;
     private final BooleanSupplier backpressureTrigger;
     private final Function<Boolean, CompletableFuture<BitSet>> execute;
+    private final String localNodeId;
 
     private TReq currentRequest;
     private int numItems = -1;
@@ -90,6 +91,7 @@ public class ShardDMLExecutor<TReq extends ShardRequest<TReq, TItem>, TItem exte
         this.nodeJobsCounter = nodeJobsCounter;
         this.responses = new BitSet();
         this.currentRequest = requestFactory.get();
+        this.localNodeId = getLocalNodeId(clusterService);
 
         this.rowConsumer = createRowConsumer(uidExpression, itemFactory);
         this.backpressureTrigger = createBackpressureTrigger();
@@ -107,8 +109,7 @@ public class ShardDMLExecutor<TReq extends ShardRequest<TReq, TItem>, TItem exte
 
     private BooleanSupplier createBackpressureTrigger() {
         return () -> {
-            final String nodeId = getLocalNodeId();
-            return !isExecutionPossible(nodeId);
+            return !isExecutionPossible(localNodeId);
         };
     }
 
@@ -121,12 +122,11 @@ public class ShardDMLExecutor<TReq extends ShardRequest<TReq, TItem>, TItem exte
                                                                                Supplier<TReq> requestFactory,
                                                                                BiConsumer<TReq, ActionListener<ShardResponse>> transportAction) {
         return (isLastBatch) -> {
-            final String nodeId = getLocalNodeId();
-            nodeJobsCounter.increment(nodeId);
+            nodeJobsCounter.increment(localNodeId);
 
             FutureActionListener<ShardResponse, BitSet> listener = new FutureActionListener<>(response -> {
                 currentRequest = requestFactory.get();
-                nodeJobsCounter.decrement(nodeId);
+                nodeJobsCounter.decrement(localNodeId);
                 processShardResponse(response);
                 return responses;
             });
@@ -154,7 +154,7 @@ public class ShardDMLExecutor<TReq extends ShardRequest<TReq, TItem>, TItem exte
     }
 
     @Nullable
-    private String getLocalNodeId() {
+    private String getLocalNodeId(ClusterService clusterService) {
         String nodeId = null;
         try {
             nodeId = clusterService.localNode().getId();
