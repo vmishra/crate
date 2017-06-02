@@ -1,0 +1,36 @@
+.. _ref-grant:
+
+=========
+``GRANT``
+=========
+
+Grants privilege to an existing user.
+
+Synopsis
+========
+
+.. code-block:: psql
+
+  GRANT { { READ | WRITE [,...] } | ALL [ PRIVILEGES ] }
+  ON { [ TABLE ] table_name [, ...] | ALL TABLES IN SCHEMA schema_name [, ...] }
+  TO user_name [, ...];
+
+
+Description
+===========
+
+``GRANT`` is a management statement to grant a ``READ`` and/or ``WRITE`` privilege
+on one or many tables, or all tables in a schema to one or many existing existing
+users.
+
+For usage of the ``GRANT`` statement see
+:doc:`/sql/administration/user_privileges`.
+
+Parameters
+==========
+
+:table_name: The name of an existing table.
+
+:schema_name: The name of an existing schema.
+
+:user_name: The name of an existing user.
