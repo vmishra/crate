@@ -67,7 +67,7 @@ public class BatchIteratorBackpressureExecutor<R> {
     private int indexInBulk = 0;
     private final int bulkSize;
     private volatile boolean lastBulkScheduledToExecute = false;
-    private final CompletableFuture executionFuture;
+    private final CompletableFuture<Void> executionFuture;
 
     public BatchIteratorBackpressureExecutor(BatchIterator batchIterator,
                                              ScheduledExecutorService scheduler,
@@ -77,7 +77,7 @@ public class BatchIteratorBackpressureExecutor<R> {
                                              AtomicInteger pendingItemsCount,
                                              int bulkSize,
                                              BackoffPolicy backoffPolicy,
-                                             CompletableFuture executionFuture) {
+                                             CompletableFuture<Void> executionFuture) {
         this.batchIterator = batchIterator;
         this.scheduler = scheduler;
         this.onRowConsumer = onRowConsumer;

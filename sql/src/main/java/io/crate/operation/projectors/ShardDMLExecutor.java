@@ -74,7 +74,7 @@ public class ShardDMLExecutor<TReq extends ShardRequest<TReq, TItem>, TItem exte
 
     private TReq currentRequest;
     private int numItems = -1;
-    private CompletableFuture executionFuture = new CompletableFuture();
+    private CompletableFuture<Void> executionFuture = new CompletableFuture<>();
 
     public ShardDMLExecutor(int bulkSize,
                             ScheduledExecutorService scheduler,
