@@ -42,7 +42,6 @@ import org.elasticsearch.common.logging.Loggers;
 import javax.annotation.Nullable;
 import java.util.BitSet;
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -167,21 +166,12 @@ public class ShardDMLExecutor<TReq extends ShardRequest<TReq, TItem>, TItem exte
     private void processShardResponse(ShardResponse shardResponse) {
         IntArrayList itemIndices = shardResponse.itemIndices();
         pendingItemsCount.addAndGet(-itemIndices.size());
-        List<ShardResponse.Failure> failures = shardResponse.failures();
         if (shardResponse.failure() != null) {
             executionFuture.completeExceptionally(shardResponse.failure());
             return;
         }
         synchronized (responses) {
-            for (int i = 0; i < itemIndices.size(); i++) {
-                int location = itemIndices.get(i);
-                ShardResponse.Failure failure = failures.get(i);
-                if (failure == null) {
-                    responses.set(location, true);
-                } else {
-                    responses.set(location, false);
-                }
-            }
+            ShardResponse.markResponseItemsAndFailures(shardResponse, responses);
         }
     }
 }

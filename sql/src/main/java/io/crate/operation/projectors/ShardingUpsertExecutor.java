@@ -317,17 +317,8 @@ public class ShardingUpsertExecutor<TReq extends ShardRequest<TReq, TItem>, TIte
     private void processShardResponse(ShardResponse shardResponse) {
         IntArrayList itemIndices = shardResponse.itemIndices();
         pendingItemsCount.addAndGet(-itemIndices.size());
-        List<ShardResponse.Failure> failures = shardResponse.failures();
         synchronized (responses) {
-            for (int i = 0; i < itemIndices.size(); i++) {
-                int location = itemIndices.get(i);
-                ShardResponse.Failure failure = failures.get(i);
-                if (failure == null) {
-                    responses.set(location, true);
-                } else {
-                    responses.set(location, false);
-                }
-            }
+            ShardResponse.markResponseItemsAndFailures(shardResponse, responses);
         }
     }
 
