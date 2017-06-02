@@ -27,6 +27,7 @@ import org.elasticsearch.common.inject.Singleton;
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
 
 /**
  * Counts how many operations issued from the current node are in progress across the cluster.
@@ -45,20 +46,32 @@ public class NodeJobsCounter {
     // Using single element long[] to avoid autoboxing
     private final Map<String, long[]> operationsCountPerNode = new ConcurrentHashMap<>();
 
+    private static BiFunction<String, long[], long[]> INCREMENT_COUNTER_FOR_NODE = (node, count) -> {
+        if (count == null) {
+            count = new long[1];
+            count[0] = 1;
+        } else {
+            count[0]++;
+        }
+        return count;
+    };
+
+    private static BiFunction<String, long[], long[]> DECREMENT_COUNTER_FOR_NODE = (id, count) -> {
+        if (count == null) {
+            count = new long[1];
+            count[0] = 0;
+        } else {
+            count[0]--;
+        }
+        return count;
+    };
+
+
     public void increment(@Nullable String nodeId) {
         if (nodeId == null) {
             unknownNodeCount++;
         } else {
-            operationsCountPerNode.compute(nodeId, (node, count) -> {
-                    if (count == null) {
-                        count = new long[1];
-                        count[0] = 1;
-                    } else {
-                        count[0]++;
-                    }
-                    return count;
-                }
-            );
+            operationsCountPerNode.compute(nodeId, INCREMENT_COUNTER_FOR_NODE);
         }
     }
 
@@ -66,15 +79,7 @@ public class NodeJobsCounter {
         if (nodeId == null) {
             unknownNodeCount--;
         } else {
-            operationsCountPerNode.compute(nodeId, (id, count) -> {
-                if (count == null) {
-                    count = new long[1];
-                    count[0] = 0;
-                } else {
-                    count[0]--;
-                }
-                return count;
-            });
+            operationsCountPerNode.compute(nodeId, DECREMENT_COUNTER_FOR_NODE);
         }
     }
 
