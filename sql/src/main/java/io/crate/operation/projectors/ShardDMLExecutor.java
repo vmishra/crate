@@ -124,14 +124,13 @@ public class ShardDMLExecutor<TReq extends ShardRequest<TReq, TItem>, TItem exte
             final String nodeId = getLocalNodeId();
             nodeJobsCounter.increment(nodeId);
 
-            Function<ShardResponse, BitSet> processResponseFunction = response -> {
+            FutureActionListener<ShardResponse, BitSet> listener = new FutureActionListener<>(response -> {
                 currentRequest = requestFactory.get();
                 nodeJobsCounter.decrement(nodeId);
                 processShardResponse(response);
                 return responses;
-            };
+            });
 
-            FutureActionListener<ShardResponse, BitSet> listener = new FutureActionListener(processResponseFunction);
             transportAction.accept(
                 currentRequest,
                 new RetryListener<>(scheduler,
