@@ -52,12 +52,23 @@ import org.elasticsearch.index.IndexNotFoundException;
 import org.elasticsearch.index.shard.ShardId;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.*;
+import java.util.function.BiFunction;
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static io.crate.operation.NodeJobsCounter.MAX_NODE_CONCURRENT_OPERATIONS;
 
@@ -210,7 +221,9 @@ public class ShardingUpsertExecutor<TReq extends ShardRequest<TReq, TItem>, TIte
 
             String nodeId;
             ShardRouting shardRouting = shardIterator.nextOrNull();
-            if (shardRouting == null || shardRouting.active() == false) {
+            if (shardRouting == null) {
+                nodeId = null;
+            } else if (shardRouting.active() == false) {
                 nodeId = shardRouting.relocatingNodeId();
             } else {
                 nodeId = shardRouting.currentNodeId();
