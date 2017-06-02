@@ -229,7 +229,7 @@ public class ShardingUpsertExecutor<TReq extends ShardRequest<TReq, TItem>, TIte
                 nodeId = shardRouting.currentNodeId();
             }
 
-            if (nodeId == null) {
+            if (nodeId == null && LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Unable to get the node id for index {} and shard {}", indexName, id);
             }
             return new ShardLocation(shardIterator.shardId(), nodeId);
