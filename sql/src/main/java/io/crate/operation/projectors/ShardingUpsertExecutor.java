@@ -343,13 +343,11 @@ public class ShardingUpsertExecutor<TReq extends ShardRequest<TReq, TItem>, TIte
 
     private Map<ShardLocation, TReq> getFromPendingToRequestMap(
         Map<String, List<PendingRequest<TItem>>> requestsByIndexForCurrentBulk) {
-        Iterator<Map.Entry<String, List<PendingRequest<TItem>>>> it = requestsByIndexForCurrentBulk.entrySet().iterator();
         Map<ShardLocation, TReq> requests = new HashMap<>();
 
-        while (it.hasNext()) {
-            Map.Entry<String, List<PendingRequest<TItem>>> entry = it.next();
-            String index = entry.getKey();
-            List<PendingRequest<TItem>> pendingRequests = entry.getValue();
+        for (Map.Entry<String,List<PendingRequest<TItem>>> indexToRequestEntry : requestsByIndexForCurrentBulk.entrySet()) {
+            String index = indexToRequestEntry.getKey();
+            List<PendingRequest<TItem>> pendingRequests = indexToRequestEntry.getValue();
 
             for (int i = 0; i < pendingRequests.size(); i++) {
                 PendingRequest<TItem> pendingRequest = pendingRequests.get(i);
